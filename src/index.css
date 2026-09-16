@@ -1,0 +1,255 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   Design tokens — Material Design 3 baseline tonal palette.
+   Neutral surfaces (surface / surface container / outline /
+   on-surface) and the default brand accent follow M3's baseline
+   "Purple" seed color (https://m3.material.io/styles/color/system/overview)
+   exactly, so the whole app reads as a standard M3 light/dark theme
+   rather than an arbitrary custom palette. Semantic colors (success/
+   warning/danger/info) are separate roles so status indicators never
+   get confused with the brand accent.
+   ============================================================ */
+:root {
+  --color-bg: #FFFBFE;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F3EDF7;
+  --color-sidebar: #F7F2FA;
+  --color-sidebar-hover: #ECE6F0;
+  --color-border: #CAC4D0;
+  --color-divider: #79747E;
+  --color-ink: #1C1B1F;
+  --color-ink-soft: #49454F;
+
+  --color-primary: #6750A4;
+  --color-primary-ink: #FFFFFF;
+  --color-primary-soft: #EADDFF;
+  --color-teal: #386A20;
+  --color-teal-soft: #C5EFA5;
+
+  --color-success: #386A20;
+  --color-success-soft: #C5EFA5;
+  --color-warning: #7A5900;
+  --color-warning-soft: #FFDEA6;
+  --color-danger: #B3261E;
+  --color-danger-soft: #F9DEDC;
+  --color-info: #0061A4;
+  --color-info-soft: #D1E4FF;
+
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --radius-modal: 28px;
+
+  --shadow-card: 0 1px 2px rgba(28, 27, 31, 0.05), 0 8px 24px rgba(28, 27, 31, 0.08);
+  --shadow-modal: 0 8px 16px rgba(28, 27, 31, 0.08), 0 24px 48px rgba(28, 27, 31, 0.16);
+}
+
+/* Material 3 dark scheme — baseline neutral tones (surface / surface
+   containers / on-surface / outline) straight from the M3 dark palette. */
+.dark {
+  --color-bg: #141218;
+  --color-surface: #211F26;
+  --color-surface-2: #2B2930;
+  --color-sidebar: #0F0D13;
+  --color-sidebar-hover: #2B2930;
+  --color-border: #49454F;
+  --color-divider: #938F99;
+  --color-ink: #E6E0E9;
+  --color-ink-soft: #CAC4D0;
+
+  --color-primary: #D0BCFF;
+  --color-primary-ink: #381E72;
+  --color-primary-soft: #4F378B;
+  --color-teal: #A2D585;
+  --color-teal-soft: #1F3701;
+
+  --color-success: #A2D585;
+  --color-success-soft: #1F3701;
+  --color-warning: #FDBB2E;
+  --color-warning-soft: #5C4200;
+  --color-danger: #F2B8B5;
+  --color-danger-soft: #8C1D18;
+  --color-info: #9ECAFF;
+  --color-info-soft: #00497D;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 8px 16px rgba(0, 0, 0, 0.45), 0 32px 64px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================================
+   Accent themes — chosen in Settings. "Material" is the M3 baseline
+   purple and is the default; the rest are optional M3-style tonal
+   accents (each still only overrides the brand "primary" role, never
+   the neutral scale, so switching never disturbs layout/readability).
+   ============================================================ */
+.theme-material { --color-primary: #6750A4; --color-primary-soft: #EADDFF; --color-primary-ink: #FFFFFF; }
+.dark.theme-material { --color-primary: #D0BCFF; --color-primary-soft: #4F378B; --color-primary-ink: #381E72; }
+
+.theme-amber { --color-primary: #825500; --color-primary-soft: #FFDEA6; --color-primary-ink: #FFFFFF; }
+.dark.theme-amber { --color-primary: #FFB945; --color-primary-soft: #634000; --color-primary-ink: #442B00; }
+
+.theme-ocean { --color-primary: #0061A4; --color-primary-soft: #D1E4FF; --color-primary-ink: #FFFFFF; }
+.dark.theme-ocean { --color-primary: #9ECAFF; --color-primary-soft: #00497D; --color-primary-ink: #003258; }
+
+.theme-sky { --color-primary: #38608F; --color-primary-soft: #D3E4FF; --color-primary-ink: #FFFFFF; }
+.dark.theme-sky { --color-primary: #A2C9FF; --color-primary-soft: #1D4876; --color-primary-ink: #0A3055; }
+
+.theme-forest { --color-primary: #386A20; --color-primary-soft: #B7F397; --color-primary-ink: #FFFFFF; }
+.dark.theme-forest { --color-primary: #9CD67D; --color-primary-soft: #205107; --color-primary-ink: #0F3900; }
+
+.theme-mint { --color-primary: #006A60; --color-primary-soft: #74F8E5; --color-primary-ink: #FFFFFF; }
+.dark.theme-mint { --color-primary: #53DBC9; --color-primary-soft: #005048; --color-primary-ink: #00201C; }
+
+.theme-rose { --color-primary: #8E4956; --color-primary-soft: #FFD9DD; --color-primary-ink: #FFFFFF; }
+.dark.theme-rose { --color-primary: #FFB2BB; --color-primary-soft: #6F323D; --color-primary-ink: #561D29; }
+
+.theme-red { --color-primary: #904A43; --color-primary-soft: #FFDAD4; --color-primary-ink: #FFFFFF; }
+.dark.theme-red { --color-primary: #FFB4A8; --color-primary-soft: #73342C; --color-primary-ink: #561F18; }
+
+* {
+  border-color: var(--color-border);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .25s ease, color .25s ease, font-size .15s ease;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: fade-in-up .26s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background-image: linear-gradient(90deg, var(--color-surface-2) 0px, var(--color-border) 40px, var(--color-surface-2) 80px);
+  background-size: 600px 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.card-hover {
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-modal);
+}
+
+/* Solid surface — used by Modal / Toast / CommandPalette / BottomNav.
+   Intentionally opaque (no blur/frosted-glass effect) per design spec. */
+.glass-surface {
+  background-color: var(--color-surface);
+}
+
+@keyframes stagger-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stagger-item {
+  animation: stagger-in .38s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chain-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+.chain-live { animation: chain-pulse 2.4s ease-in-out infinite; }
+
+/* Material-style ripple — expands from the pointer, fades out. Any
+   container using it needs `position: relative; overflow: hidden`.
+   Two separate keyframes (scale grows the whole time, opacity holds
+   briefly then fades) keep it visible for a beat instead of vanishing
+   instantly under the fast "grow" easing. Fixed rgba colors (rather
+   than currentColor) keep contrast predictable across every surface. */
+@keyframes ripple-scale {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+@keyframes ripple-fade {
+  0% { opacity: 1; }
+  55% { opacity: .8; }
+  100% { opacity: 0; }
+}
+.ripple {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  transform: scale(0);
+  animation: ripple-scale .55s cubic-bezier(.2,.8,.2,1) forwards, ripple-fade .55s ease-out forwards;
+}
+.ripple-light { background: rgba(255, 255, 255, 0.45); }
+.ripple-dark { background: rgba(0, 0, 0, 0.14); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Accordion (filter panel) — animates height via grid-template-rows
+   (0fr <-> 1fr) so content can be `overflow:hidden` without a hard-coded
+   max-height, and opens/closes smoothly instead of snapping. */
+.accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .22s cubic-bezier(.2,.8,.2,1);
+}
+.accordion.accordion-open {
+  grid-template-rows: 1fr;
+}
+.accordion > div {
+  overflow: hidden;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
