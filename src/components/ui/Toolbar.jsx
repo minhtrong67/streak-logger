@@ -82,7 +82,7 @@ export default function Toolbar({
               ))}
             </Select>
           )}
-          <div className={`grid gap-2 grid-cols-2 sm:flex`}>
+          <div className={`grid gap-3 grid-cols-2 sm:flex`}>
             {/* Import — CSV/Excel accepted, but the visible label is explicit
                 per design spec ("Import CSV"). */}
             <button

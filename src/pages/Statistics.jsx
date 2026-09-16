@@ -23,7 +23,6 @@ import {
   getPeriodOfDay,
   PERIOD_ORDER,
   getWeekdayShort,
-  getMonthShort,
   getWeekStart,
 } from "../utils/date";
 import { PERIOD_HEX } from "../utils/period";
@@ -46,7 +45,7 @@ function dateKey(d) {
  * selected granularity. Always ends "now" and looks back a fixed window
  * (14 days / 8 weeks / 12 months / 5 years) so the chart shape is stable
  * regardless of how much history exists. */
-function buildTimeSeries(posts, granularity, now, lang) {
+function buildTimeSeries(posts, granularity, now) {
   if (granularity === "day") {
     const out = [];
     for (let i = 13; i >= 0; i--) {
@@ -92,7 +91,8 @@ function buildTimeSeries(posts, granularity, now, lang) {
     }
     return out;
   }
-  // month (default)
+  // month (default) — compact "T1".."T12" labels so 12 ticks never crowd
+  // together on narrow (mobile) chart widths.
   const out = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -102,7 +102,7 @@ function buildTimeSeries(posts, granularity, now, lang) {
         pd.getFullYear() === d.getFullYear() && pd.getMonth() === d.getMonth()
       );
     }).length;
-    out.push({ label: getMonthShort(d.getMonth(), lang), count });
+    out.push({ label: `T${d.getMonth() + 1}`, count });
   }
   return out;
 }
@@ -263,8 +263,8 @@ export default function Statistics() {
   }, [posts, now]);
 
   const timeSeries = useMemo(
-    () => buildTimeSeries(posts, granularity, now, lang),
-    [posts, granularity, now, lang],
+    () => buildTimeSeries(posts, granularity, now),
+    [posts, granularity, now],
   );
   const weekdayCounts = useMemo(
     () => buildWeekdayCounts(posts, lang),

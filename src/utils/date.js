@@ -35,17 +35,18 @@ function pad(n) {
  * vi: "Thứ Bảy, ngày 18 tháng 07 năm 2026, 14:30"
  * en: "Saturday, July 18, 2026, 14:30"
  */
-export function formatFullDateTime(date, lang = 'en') {
+export function formatFullDateTime(date) {
   const d = new Date(date)
   if (Number.isNaN(d.getTime())) return '—'
-  const weekday = lang === 'vi' ? WEEKDAYS_VI[d.getDay()] : WEEKDAYS_EN[d.getDay()]
-  const hh = pad(d.getHours())
-  const mm = pad(d.getMinutes())
 
-  if (lang === 'vi') {
-    return `${weekday}, ngày ${pad(d.getDate())} tháng ${pad(d.getMonth() + 1)} năm ${d.getFullYear()}, ${hh}:${mm}`
-  }
-  return `${weekday}, ${MONTHS_EN[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${hh}:${mm}`
+  const weekday = WEEKDAYS_VI[d.getDay()]
+  const dd = pad(d.getDate())
+  const mm = pad(d.getMonth() + 1)
+  const yyyy = d.getFullYear()
+  const hh = pad(d.getHours())
+  const min = pad(d.getMinutes())
+
+  return `${weekday}, ${dd}/${mm}/${yyyy}, ${hh}:${min}`
 }
 
 /** Compact date-time for tables, e.g. "18/07/2026 14:30" */
