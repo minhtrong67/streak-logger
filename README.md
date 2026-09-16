@@ -2,7 +2,7 @@
 
 Dashboard cá nhân (một người dùng, không cần đăng nhập) để theo dõi streak — xây dựng bằng React, Supabase và Tailwind CSS, giao diện theo chuẩn **Material Design 3**.
 
-Phát triển bởi **gnort67**, với sự hỗ trợ phát triển từ **Claude (Anthropic)**.
+Phát triển bởi **minhtrong67**, với sự hỗ trợ phát triển từ **Claude (Anthropic)**.
 
 > Ứng dụng chỉ hỗ trợ **Tiếng Việt** — không có tùy chọn chuyển ngôn ngữ.
 
@@ -14,7 +14,7 @@ Phát triển bởi **gnort67**, với sự hỗ trợ phát triển từ **Clau
   - **Bộ lọc dạng accordion** (buổi trong ngày, khoảng ngày) — mở/đóng mượt, có huy hiệu báo đang lọc.
   - Tìm kiếm, sắp xếp, chọn nhiều dòng để xóa/xuất hàng loạt.
   - **Nhập tệp (Import CSV)**: hỗ trợ `.csv`, `.xlsx`, `.xls`. Nếu dòng dữ liệu nhập vào trùng khớp (ngày + giờ + thời lượng) với dữ liệu đã có, hệ thống sẽ **ghi đè** thay vì tạo bản sao trùng lặp.
-  - **Xuất tệp (Export)** dạng *split button*: bấm nút chính để xuất nhanh CSV, bấm mũi tên để chọn CSV / Excel / PDF. File PDF được nhúng sẵn font Unicode nên **không bị lỗi font tiếng Việt**.
+  - **Xuất tệp (Export)** dạng _split button_: bấm nút chính để xuất nhanh CSV, bấm mũi tên để chọn CSV / Excel / PDF. File PDF được nhúng sẵn font Unicode nên **không bị lỗi font tiếng Việt**.
 - **Thống kê (Statistics)** — thẻ tổng quan xếp cột trên mobile: streak hiện tại, tổng số nhật ký, số mục trong tháng, số ngày hoạt động, buổi hoạt động nhiều nhất. Biểu đồ gồm **cột dọc** (theo thời gian, mặc định theo tháng — có thể đổi ngày/tuần/tháng/năm), **cột ngang** (theo thứ trong tuần) và **tròn** (theo buổi trong ngày).
 - **Bố cục dashboard** — sidebar cố định trên desktop, thanh điều hướng dưới cùng kiểu app gốc trên mobile, cùng với **header riêng cho mobile**: bên trái là tên ứng dụng + nút mở sidebar dạng drawer, bên phải là nút tìm kiếm nhanh (Ctrl+K) và nút chuyển giao diện sáng/tối.
 - **Trang Cài đặt** để cá nhân hóa, lưu ngay trên thiết bị: giao diện sáng/tối/theo hệ thống, cỡ chữ (nhỏ/vừa/lớn), và một trong 8 màu chủ đạo theo tông màu Material Design 3 (Material, Hổ phách, Đại dương, Bầu trời, Rừng xanh, Bạc hà, Hồng phấn, San hô).

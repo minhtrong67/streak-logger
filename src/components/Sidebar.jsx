@@ -126,7 +126,7 @@ export default function Sidebar({
           <p
             className={`text-xs text-[var(--color-ink-soft)] px-3 ${collapsed ? "hidden" : ""}`}
           >
-            gnort67 · Claude (Anthropic)
+            minhtrong67 · Claude (Anthropic)
           </p>
         </div>
       </aside>
@@ -153,7 +153,7 @@ export default function Sidebar({
             </div>
             <NavList collapsed={false} onLinkClick={onCloseMobile} />
             <p className="text-xs text-[var(--color-ink-soft)] px-6 pb-4 pt-3 border-t border-[var(--color-border)] mt-2">
-              gnort67 · Claude (Anthropic)
+              minhtrong67 · Claude (Anthropic)
             </p>
           </aside>
         </div>

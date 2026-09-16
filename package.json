@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "author": "gnort67",
+  "author": "minhtrong67",
   "description": "Streak Logger — personal streak management dashboard (Time Streak + Streak Posts + Statistics), built with React, Supabase and Tailwind CSS.",
   "scripts": {
     "dev": "vite",

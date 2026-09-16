@@ -2,7 +2,7 @@
 
 Bảng điều khiển riêng tư, dành cho một người dùng duy nhất để theo dõi các streak cá nhân — xây dựng bằng React, Supabase và Tailwind CSS.
 
-Được xây dựng bởi **gnort67**, với sự hỗ trợ phát triển từ **Claude (Anthropic)**.
+Được xây dựng bởi **minhtrong67**, với sự hỗ trợ phát triển từ **Claude (Anthropic)**.
 
 > 🇬🇧 English version: [README.md](./README.md)
 
@@ -100,7 +100,7 @@ Thư mục `dist/` là một trang tĩnh — có thể triển khai ở bất k�
 
 ## Lưu ý về quyền riêng tư
 
-Theo yêu cầu, ứng dụng **không có màn hình đăng nhập** — kết nối trực tiếp đến Supabase bằng anon key công khai. Điều này có nghĩa là bất kỳ ai có đường link ứng dụng đã triển khai *và* URL/anon key Supabase nhúng trong bản build đều có thể đọc/ghi dữ liệu của bạn. Hãy giữ kín các thông tin này:
+Theo yêu cầu, ứng dụng **không có màn hình đăng nhập** — kết nối trực tiếp đến Supabase bằng anon key công khai. Điều này có nghĩa là bất kỳ ai có đường link ứng dụng đã triển khai _và_ URL/anon key Supabase nhúng trong bản build đều có thể đọc/ghi dữ liệu của bạn. Hãy giữ kín các thông tin này:
 
 - Không chia sẻ đường link công khai, không commit file `.env` lên repository công khai.
 - Nếu muốn bảo vệ chặt hơn, bạn có thể đặt mật khẩu cho trang đã triển khai (VD: password protection của Vercel/Netlify, hoặc basic-auth của nginx) mà không cần sửa code ứng dụng.
@@ -109,6 +109,7 @@ Theo yêu cầu, ứng dụng **không có màn hình đăng nhập** — kết 
 ## Nhật ký thay đổi
 
 **Đợt hoàn thiện Material Design 3**
+
 - Làm lại giao diện tối theo đúng bảng màu nền tối chuẩn của M3 (các tông surface/surface-container, on-surface, outline) thay vì bảng màu slate/zinc tự chọn trước đây — nền tối sâu và chuẩn tương phản hơn.
 - Cập nhật bo góc theo thang hình khối của M3 (medium/large/extra-large: 12 / 16 / 28px), rõ nhất ở các hộp thoại.
 - Nhật ký streak hiển thị dạng card trên di động thay vì bảng dữ liệu bị bó hẹp (desktop vẫn giữ bảng đầy đủ với sắp xếp, tìm kiếm theo cột, và gridlines).
@@ -118,24 +119,29 @@ Theo yêu cầu, ứng dụng **không có màn hình đăng nhập** — kết 
 - Bộ chọn font trong Cài đặt rút gọn còn đúng 2 lựa chọn: Be Vietnam Pro và Inter.
 
 **Icon & thương hiệu**
+
 - Thiết kế lại favicon và toàn bộ app icon (16px → 512px, kèm bản maskable) theo phong cách Material phẳng, hình ảnh "ngọn lửa" hình học trên nền squircle, thay cho bản cũ có gradient/bóng loáng. Tạo lại `favicon.ico` và toàn bộ icon trong manifest PWA, đồng thời đồng bộ `theme-color`/màu manifest với màu nhấn mặc định thực tế của ứng dụng.
 
 **Chuyển động**
+
 - Thêm hiệu ứng gợn sóng (ripple) đúng chuẩn Material — vòng tròn lan tỏa và mờ dần từ điểm chạm — cho nút bấm, icon button, mục sidebar và tab thanh điều hướng dưới trên di động. Tự động chọn màu ripple sáng/tối tùy nền, và tôn trọng `prefers-reduced-motion` như các animation khác của ứng dụng.
 
 **Bảng dữ liệu & công cụ dữ liệu**
+
 - Bảng Nhật ký streak giờ có tiêu đề cột có thể bấm để sắp xếp (kèm icon hướng sắp xếp), ô tìm kiếm riêng cho cột Thời lượng và Mô tả, có gridlines rõ ràng, và phân trang cố định 20 dòng/trang.
 - Các nút thao tác (Xem/Sửa/Xóa) giờ luôn hiển thị dưới dạng icon tròn có màu nền, thay vì icon mờ chỉ hiện khi hover.
 - Nhập hỗ trợ cả CSV lẫn Excel; xuất có thể chọn CSV, Excel, hoặc PDF từ menu thả xuống. File PDF nhúng sẵn font hỗ trợ tiếng Việt nên không bao giờ bị lỗi dấu.
 - Thư viện `xlsx` và `jsPDF` được tải lười (chỉ khi cần dùng) để không làm nặng bundle khởi động hay bộ nhớ đệm PWA.
 
 **Điều hướng**
+
 - Thêm bảng lệnh nhanh Ctrl+K / Cmd+K để nhảy thẳng đến bất kỳ trang nào, kèm nút tìm kiếm tương ứng trên header.
 
 **Cài đặt**
+
 - Thêm thẻ "Cài đặt ứng dụng" hiển thị lời mời cài đặt PWA gốc (hoặc gợi ý thay thế trên trình duyệt không hỗ trợ) khi ứng dụng chưa được cài đặt.
 
 ## Ghi công
 
-- Tác giả: **gnort67**
+- Tác giả: **minhtrong67**
 - Được xây dựng với sự hỗ trợ phát triển từ **Claude** của Anthropic
