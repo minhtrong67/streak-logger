@@ -1,35 +1,47 @@
+import { useState } from "react";
 import {
   Sun,
   Moon,
   Monitor,
-  Check,
   RotateCcw,
-  Palette,
   CaseSensitive,
-  Shuffle,
   Download,
-  CheckCircle2,
+  Database,
+  User,
+  Info,
 } from "lucide-react";
 import { useLang } from "../context/LangContext";
 import { useTheme } from "../context/ThemeContext";
 import {
   useAppearance,
   FONT_SIZES,
-  COLOR_THEMES,
+  DEFAULT_FONT_SIZE,
 } from "../context/AppearanceContext";
 import { useToast } from "../context/ToastContext";
 import { usePwaInstall } from "../hooks/usePwaInstall";
+import { useStreakPosts } from "../hooks/useStreakPosts";
+import { useTimeStreak } from "../hooks/useTimeStreak";
+import { exportPostsAs, POST_COLUMNS, toPlainPost } from "../utils/postExport";
+import {
+  exportToCsv,
+  exportToExcel,
+  exportToJson,
+  timestampSuffix,
+} from "../utils/exportData";
+import { formatDateOnly, formatFullDateTime } from "../utils/date";
 import PageHeader from "../components/ui/PageHeader";
 import Button from "../components/ui/Button";
-import Switch from "../components/ui/Switch";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import ExportMenu from "../components/ExportMenu";
+import UserCard from "../components/UserCard";
 
 function SettingsCard({ title, hint, icon: Icon, children, delay = 0 }) {
   return (
     <div
-      className="stagger-item card-hover rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-card)] p-5 sm:p-6"
+      className="stagger-item rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-card)] p-4 sm:p-6"
       style={{ "--stagger-delay": `${delay}ms` }}
     >
-      <div className="flex items-center gap-2.5 mb-0.5">
+      <div className="flex items-center gap-2.5">
         {Icon && (
           <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] shrink-0">
             <Icon size={16} />
@@ -40,12 +52,11 @@ function SettingsCard({ title, hint, icon: Icon, children, delay = 0 }) {
         </h3>
       </div>
       {hint && (
-        <p className="text-xs text-[var(--color-ink-soft)] mt-1 mb-4 ml-[42px]">
+        <p className="text-xs text-[var(--color-ink-soft)] mt-1.5 ml-[42px]">
           {hint}
         </p>
       )}
-      {!hint && <div className="mb-4" />}
-      {children}
+      <div className="mt-4">{children}</div>
     </div>
   );
 }
@@ -53,9 +64,10 @@ function SettingsCard({ title, hint, icon: Icon, children, delay = 0 }) {
 function OptionButton({ active, onClick, icon: Icon, label }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex-1 flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] border py-4 sm:py-3.5 px-3 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
+      className={`flex-1 flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] border py-4 px-3 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
         active
           ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
           : "border-[var(--color-border)] text-[var(--color-ink-soft)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)]"
@@ -69,22 +81,23 @@ function OptionButton({ active, onClick, icon: Icon, label }) {
 
 export default function Settings() {
   const { t } = useLang();
-  const { theme, setTheme } = useTheme();
-  const {
-    fontSize,
-    setFontSize,
-    colorTheme,
-    setColorTheme,
-    randomColor,
-    setRandomColor,
-    shuffleColor,
-  } = useAppearance();
   const toast = useToast();
+  const { theme, setTheme } = useTheme();
+  const { fontSize, setFontSize } = useAppearance();
   const { installed, canPrompt, promptInstall } = usePwaInstall();
+  const { items: posts } = useStreakPosts();
+  const { streak } = useTimeStreak();
+  const [resetOpen, setResetOpen] = useState(false);
 
   const handleInstall = async () => {
     const accepted = await promptInstall();
     if (accepted) toast.success(t("settings.installed"));
+  };
+
+  const handleReset = () => {
+    setTheme("system");
+    setFontSize(DEFAULT_FONT_SIZE);
+    toast.success(t("settings.resetDone"));
   };
 
   const themeOptions = [
@@ -93,12 +106,90 @@ export default function Settings() {
     { value: "system", icon: Monitor },
   ];
 
-  const handleReset = () => {
-    setTheme("system");
-    setFontSize("md");
-    setColorTheme("material");
-    setRandomColor(false);
-    toast.success(t("settings.resetDone"));
+  /**
+   * Xuất toàn bộ dữ liệu. JSON và Excel gồm cả mốc thời gian lẫn nhật ký,
+   * các định dạng còn lại gồm toàn bộ nhật ký.
+   */
+  const handleExportAll = async (format) => {
+    if (!posts.length && !streak) {
+      toast.info(t("csv.exportEmpty"));
+      return;
+    }
+    try {
+      const columns = POST_COLUMNS.map((c) => ({
+        ...c,
+        label: t(c.labelKey),
+        value: (r) => c.get(r, t),
+      }));
+      const sorted = [...posts].sort((a, b) =>
+        `${b.post_date} ${b.post_time}`.localeCompare(
+          `${a.post_date} ${a.post_time}`,
+        ),
+      );
+      const stamp = timestampSuffix();
+
+      if (format === "json") {
+        exportToJson(
+          {
+            exportedAt: new Date().toISOString(),
+            timeStreak: streak
+              ? {
+                  title: streak.title,
+                  start_at: streak.start_at,
+                  note: streak.note || null,
+                }
+              : null,
+            streakPosts: sorted.map(toPlainPost),
+          },
+          `streak-logger-toan-bo-du-lieu-${stamp}.json`,
+        );
+      } else if (format === "excel") {
+        const streakColumns = [
+          { label: t("timeStreak.fieldTitle"), value: (r) => r.title },
+          {
+            label: t("timeStreak.milestone"),
+            value: (r) => formatFullDateTime(r.start_at),
+          },
+          { label: t("timeStreak.fieldNote"), value: (r) => r.note || "" },
+        ];
+        await exportToExcel(
+          [
+            { name: t("streakPost.title"), columns, rows: sorted },
+            {
+              name: t("timeStreak.title"),
+              columns: streakColumns,
+              rows: streak ? [streak] : [],
+            },
+          ],
+          `streak-logger-toan-bo-du-lieu-${stamp}.xlsx`,
+        );
+      } else if (format === "csv") {
+        exportToCsv(
+          sorted,
+          columns,
+          `streak-logger-toan-bo-du-lieu-${stamp}.csv`,
+        );
+      } else {
+        if (!sorted.length) {
+          toast.info(t("csv.exportEmpty"));
+          return;
+        }
+        const result = await exportPostsAs(
+          format,
+          sorted,
+          columns,
+          t("streakPost.title"),
+          "-toan-bo",
+        );
+        if (result?.truncated) {
+          toast.info(t("csv.exportTruncated", { count: result.truncated }));
+          return;
+        }
+      }
+      toast.success(t("csv.exportSuccess"));
+    } catch {
+      toast.error(t("csv.exportError"));
+    }
   };
 
   return (
@@ -107,19 +198,34 @@ export default function Settings() {
         title={t("settings.title")}
         subtitle={t("settings.subtitle")}
         actions={
-          <Button variant="danger" icon={RotateCcw} onClick={handleReset}>
+          <Button
+            variant="dangerSoft"
+            className="w-full"
+            icon={RotateCcw}
+            onClick={() => setResetOpen(true)}
+          >
             {t("settings.reset")}
           </Button>
         }
       />
 
       <div className="flex flex-col gap-4 max-w-3xl">
+        <SettingsCard
+          title={t("auth.account")}
+          hint={t("auth.accountHint")}
+          icon={User}
+          delay={0}
+        >
+          <UserCard />
+        </SettingsCard>
+
+        {/* Thẻ cài đặt app chỉ hiện khi người dùng chưa cài. */}
         {!installed && (
           <SettingsCard
             title={t("settings.installApp")}
             hint={t("settings.installAppHint")}
             icon={Download}
-            delay={0}
+            delay={40}
           >
             {canPrompt ? (
               <Button icon={Download} onClick={handleInstall}>
@@ -132,25 +238,12 @@ export default function Settings() {
             )}
           </SettingsCard>
         )}
-        {installed && (
-          <SettingsCard
-            title={t("settings.installApp")}
-            hint={t("settings.installAppHint")}
-            icon={CheckCircle2}
-            delay={0}
-          >
-            <div className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-success)]">
-              <CheckCircle2 size={16} />
-              {t("settings.installed")}
-            </div>
-          </SettingsCard>
-        )}
 
         <SettingsCard
           title={t("settings.appearance")}
           hint={t("settings.appearanceHint")}
           icon={Monitor}
-          delay={40}
+          delay={80}
         >
           <div className="flex gap-2 sm:gap-2.5">
             {themeOptions.map(({ value, icon }) => (
@@ -169,10 +262,10 @@ export default function Settings() {
           title={t("settings.fontSize")}
           hint={t("settings.fontSizeHint")}
           icon={CaseSensitive}
-          delay={80}
+          delay={120}
         >
           <div className="flex gap-2 sm:gap-2.5">
-            {Object.entries(FONT_SIZES).map(([key]) => (
+            {Object.keys(FONT_SIZES).map((key) => (
               <OptionButton
                 key={key}
                 active={fontSize === key}
@@ -182,7 +275,7 @@ export default function Settings() {
                     style={{
                       fontSize:
                         key === "sm"
-                          ? "0.8em"
+                          ? "0.85em"
                           : key === "lg"
                             ? "1.15em"
                             : "1em",
@@ -197,67 +290,47 @@ export default function Settings() {
         </SettingsCard>
 
         <SettingsCard
-          title={t("settings.color")}
-          hint={t("settings.colorHint")}
-          icon={Palette}
-          delay={120}
+          title={t("settings.data")}
+          hint={t("settings.dataHint")}
+          icon={Database}
+          delay={160}
         >
-          <div className="grid grid-cols-4 gap-3 sm:gap-4">
-            {Object.entries(COLOR_THEMES).map(([key, c]) => (
-              <button
-                key={key}
-                onClick={() => setColorTheme(key)}
-                aria-pressed={colorTheme === key}
-                title={t(`settings.colorLabels.${key}`)}
-                className="flex flex-col items-center gap-1.5 group py-1"
-              >
-                <span
-                  className="w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-150 group-active:scale-90 group-hover:scale-105"
-                  style={{
-                    backgroundColor: c.swatch,
-                    boxShadow:
-                      colorTheme === key
-                        ? `0 0 0 2px var(--color-surface), 0 0 0 4px ${c.swatch}`
-                        : "none",
-                  }}
-                >
-                  {colorTheme === key && (
-                    <Check size={16} className="text-white" />
-                  )}
-                </span>
-                <span className="text-[11px] sm:text-xs text-[var(--color-ink-soft)] truncate max-w-full">
-                  {t(`settings.colorLabels.${key}`)}
-                </span>
-              </button>
-            ))}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <ExportMenu
+              variant="primary"
+              label={t("settings.exportAll")}
+              onExport={handleExportAll}
+              className="sm:w-56"
+            />
+            <p className="text-xs text-[var(--color-ink-soft)]">
+              {t("settings.exportAllHint")}
+            </p>
           </div>
+          <p className="text-xs text-[var(--color-ink-soft)] mt-3 tabular">
+            {posts.length} {t("stats.entries")}
+            {streak
+              ? ` · ${t("timeStreak.milestone")}: ${formatDateOnly(streak.start_at)}`
+              : ""}
+          </p>
+        </SettingsCard>
 
-          <div className="flex items-center justify-between gap-3 mt-5 pt-4 border-t border-[var(--color-border)]">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--color-ink)]">
-                {t("settings.randomColor")}
-              </p>
-              <p className="text-xs text-[var(--color-ink-soft)] mt-0.5">
-                {t("settings.randomColorHint")}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                icon={Shuffle}
-                onClick={shuffleColor}
-                aria-label={t("settings.shuffleNow")}
-              />
-              <Switch
-                checked={randomColor}
-                onChange={setRandomColor}
-                label={t("settings.randomColor")}
-              />
-            </div>
-          </div>
+        <SettingsCard title={t("settings.about")} icon={Info} delay={200}>
+          <p className="text-sm text-[var(--color-ink-soft)]">
+            {t("settings.aboutBody")}
+          </p>
         </SettingsCard>
       </div>
+
+      <ConfirmDialog
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+        onConfirm={handleReset}
+        title={t("settings.resetTitle")}
+        body={t("settings.resetBody")}
+        confirmLabel={t("settings.reset")}
+        confirmIcon={RotateCcw}
+        tone="primary"
+      />
     </div>
   );
 }

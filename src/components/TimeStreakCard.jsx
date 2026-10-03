@@ -11,12 +11,12 @@ import IconButton from "./ui/IconButton";
 import Badge from "./ui/Badge";
 
 export default function TimeStreakCard({ streak, onEdit, onReset }) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const now = useNow(1000);
   const parts = computeElapsedParts(streak.start_at, now);
   const elapsedStr = formatElapsedParts(parts, t);
-  const currentStr = formatFullDateTime(now, lang);
-  const milestoneStr = formatFullDateTime(streak.start_at, lang);
+  const currentStr = formatFullDateTime(now);
+  const milestoneStr = formatFullDateTime(streak.start_at);
 
   return (
     <div className="card-hover relative rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-card)] p-5 sm:p-6 flex flex-col gap-4 max-w-xl">

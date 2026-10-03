@@ -5,7 +5,8 @@ const variants = {
   primary: 'bg-[var(--color-primary)] text-[var(--color-primary-ink)] hover:brightness-105 active:brightness-95 shadow-sm',
   secondary: 'bg-[var(--color-surface-2)] text-[var(--color-ink)] hover:bg-[var(--color-border)]',
   ghost: 'bg-transparent text-[var(--color-ink)] hover:bg-[var(--color-surface-2)]',
-  danger: 'bg-[var(--color-danger-soft)] text-white hover:brightness-105 active:brightness-95',
+  danger: 'bg-[var(--color-danger-solid)] text-white hover:brightness-110 active:brightness-95 shadow-sm',
+  dangerSoft: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)] hover:brightness-95',
   outline: 'bg-transparent border border-[var(--color-border)] text-[var(--color-ink)] hover:bg-[var(--color-surface-2)]',
 }
 
@@ -20,6 +21,7 @@ const rippleTones = {
   secondary: 'dark',
   ghost: 'dark',
   danger: 'light',
+  dangerSoft: 'dark',
   outline: 'dark',
 }
 

@@ -10,7 +10,7 @@ export default function Pagination({ page, pageSize, total, onPageChange }) {
   if (total === 0) return null
 
   // Compact page-number list: always show first, last, current ±1, with
-  // ellipses for gaps — keeps the control usable even with many pages.
+  // ellipses for gaps: keeps the control usable even with many pages.
   const pages = []
   for (let p = 1; p <= totalPages; p++) {
     if (p === 1 || p === totalPages || Math.abs(p - page) <= 1) pages.push(p)

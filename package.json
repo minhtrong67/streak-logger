@@ -1,10 +1,10 @@
 {
-  "name": "streak-dashboard",
+  "name": "streak-logger",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "author": "minhtrong67",
-  "description": "Streak Logger — personal streak management dashboard (Time Streak + Streak Posts + Statistics), built with React, Supabase and Tailwind CSS.",
+  "description": "Streak Logger: theo dõi mốc thời gian và nhật ký streak, xây dựng bằng React, Vite, Tailwind CSS và Firebase.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,8 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.7",
     "date-fns": "^4.4.0",
+    "docx": "^9.8.1",
+    "firebase": "^12.19.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.25.0",

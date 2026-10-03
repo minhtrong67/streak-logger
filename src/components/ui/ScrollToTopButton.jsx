@@ -13,7 +13,7 @@ export default function ScrollToTopButton() {
       }
     }
     
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     // Run once on mount to set initial state
     handleScroll()
 
@@ -32,8 +32,8 @@ export default function ScrollToTopButton() {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-ink)] shadow-[var(--shadow-card)] hover:opacity-90 hover:-translate-y-1 transition-all duration-300"
-      aria-label="Scroll to top"
+      className="fixed bottom-24 lg:bottom-6 right-4 lg:right-6 z-40 p-3 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-ink)] shadow-[var(--shadow-card)] hover:opacity-90 hover:-translate-y-1 transition-all duration-300"
+      aria-label="Lên đầu trang"
     >
       <ArrowUp size={20} />
     </button>

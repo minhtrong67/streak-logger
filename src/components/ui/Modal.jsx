@@ -28,13 +28,13 @@ export default function Modal({ open, onClose, title, children, footer, size = '
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative w-full ${widths[size]} glass-surface rounded-t-[var(--radius-modal)] sm:rounded-[var(--radius-modal)] shadow-[var(--shadow-modal)] max-h-[92vh] flex flex-col animate-[modal-in_.25s_cubic-bezier(.2,.9,.3,1)]`}
+        className={`relative w-full ${widths[size]} glass-surface rounded-t-[var(--radius-modal)] sm:rounded-[var(--radius-modal)] shadow-[var(--shadow-modal)] max-h-[92dvh] flex flex-col animate-[modal-in_.25s_cubic-bezier(.2,.9,.3,1)]`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
           <h2 className="text-base font-semibold text-[var(--color-ink)]">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Đóng"
             className="rounded-lg p-1.5 text-[var(--color-ink-soft)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)]"
           >
             <X size={18} />

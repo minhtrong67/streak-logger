@@ -5,7 +5,6 @@ import {
   Pencil,
   Trash2,
   Eye,
-  Copy,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
@@ -25,25 +24,34 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import IconButton from "../components/ui/IconButton";
 import Badge from "../components/ui/Badge";
 import Pagination from "../components/ui/Pagination";
+import ExportMenu from "../components/ExportMenu";
+import SwipeRow from "../components/SwipeRow";
 import StreakPostForm from "../components/StreakPostForm";
 import StreakPostView from "../components/StreakPostView";
 import { SkeletonTableRow, SkeletonCard } from "../components/ui/Skeleton";
-import {
-  exportToCsv,
-  exportToExcel,
-  exportToPdf,
-  parseDataFile,
-} from "../utils/csv";
+import { parseDataFile, mapRecordsToPosts } from "../utils/importData";
+import { exportPostsAs, POST_COLUMNS } from "../utils/postExport";
 import { formatDateOnly, getPeriodOfDay, PERIOD_ORDER } from "../utils/date";
 import { PERIOD_TONE } from "../utils/period";
 
 const PAGE_SIZE = 20;
 
+/** Chuyển chuỗi thành dạng chữ thường để so khớp tìm kiếm. */
+const norm = (s) => String(s || "").toLowerCase();
+
 export default function StreakPosts() {
   const { t } = useLang();
   const toast = useToast();
-  const { items, loading, create, update, remove, removeMany, bulkCreate } =
-    useStreakPosts();
+  const {
+    items,
+    loading,
+    error,
+    create,
+    update,
+    remove,
+    removeMany,
+    bulkCreate,
+  } = useStreakPosts();
 
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
@@ -68,41 +76,32 @@ export default function StreakPosts() {
   ];
 
   const filtered = useMemo(() => {
-    let list = items.filter((it) => {
-      const matchSearch =
-        it.duration.toLowerCase().includes(search.toLowerCase()) ||
-        (it.description || "").toLowerCase().includes(search.toLowerCase());
-      const matchPeriod =
-        !periodFilter || getPeriodOfDay(it.post_time) === periodFilter;
-      const matchFrom = !fromDate || it.post_date >= fromDate;
-      const matchTo = !toDate || it.post_date <= toDate;
-      const matchColDuration =
-        !colDuration ||
-        it.duration.toLowerCase().includes(colDuration.toLowerCase());
-      const matchColDescription =
-        !colDescription ||
-        (it.description || "")
-          .toLowerCase()
-          .includes(colDescription.toLowerCase());
-      return (
-        matchSearch &&
-        matchPeriod &&
-        matchFrom &&
-        matchTo &&
-        matchColDuration &&
-        matchColDescription
-      );
+    const q = norm(search);
+    const cd = norm(colDuration);
+    const cs = norm(colDescription);
+    const list = items.filter((it) => {
+      if (
+        q &&
+        !norm(it.duration).includes(q) &&
+        !norm(it.description).includes(q)
+      )
+        return false;
+      if (periodFilter && getPeriodOfDay(it.post_time) !== periodFilter)
+        return false;
+      if (fromDate && it.post_date < fromDate) return false;
+      if (toDate && it.post_date > toDate) return false;
+      if (cd && !norm(it.duration).includes(cd)) return false;
+      if (cs && !norm(it.description).includes(cs)) return false;
+      return true;
     });
-    list = [...list].sort((a, b) => {
-      const dtA = new Date(`${a.post_date}T${a.post_time}`);
-      const dtB = new Date(`${b.post_date}T${b.post_time}`);
-      if (sort === "newest") return dtB - dtA;
-      if (sort === "oldest") return dtA - dtB;
-      if (sort === "nameAsc") return a.duration.localeCompare(b.duration);
-      if (sort === "nameDesc") return b.duration.localeCompare(a.duration);
-      return 0;
+    // Chuỗi YYYY-MM-DD và HH:mm so sánh theo thứ tự chữ cái chính là thứ tự thời gian.
+    const stamp = (x) => `${x.post_date} ${x.post_time}`;
+    return list.sort((a, b) => {
+      if (sort === "newest") return stamp(b).localeCompare(stamp(a));
+      if (sort === "oldest") return stamp(a).localeCompare(stamp(b));
+      if (sort === "nameAsc") return a.duration.localeCompare(b.duration, "vi");
+      return b.duration.localeCompare(a.duration, "vi");
     });
-    return list;
   }, [
     items,
     search,
@@ -114,17 +113,17 @@ export default function StreakPosts() {
     colDescription,
   ]);
 
-  const hasActiveFilters =
-    search !== "" ||
+  const hasActiveFilters = Boolean(
+    search ||
     sort !== "newest" ||
-    periodFilter !== "" ||
-    fromDate !== "" ||
-    toDate !== "" ||
-    colDuration !== "" ||
-    colDescription !== "";
+    periodFilter ||
+    fromDate ||
+    toDate ||
+    colDuration ||
+    colDescription,
+  );
 
-  // Any filter/search change can shrink the result set below the current
-  // page — always snap back to page 1 so the table never renders empty.
+  // Mọi thay đổi bộ lọc đều quay về trang 1 để danh sách không bị trống.
   useEffect(() => {
     setPage(1);
   }, [
@@ -142,6 +141,15 @@ export default function StreakPosts() {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
+  // Bỏ chọn các mục đã bị xóa (ví dụ xóa từ thiết bị khác).
+  useEffect(() => {
+    setSelected((prev) => {
+      const ids = new Set(items.map((i) => i.id));
+      const next = prev.filter((id) => ids.has(id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [items]);
+
   const paginated = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [filtered, page],
@@ -157,17 +165,23 @@ export default function StreakPosts() {
     setColDescription("");
   };
 
+  const openAdd = () => {
+    setEditing(null);
+    setFormOpen(true);
+  };
+  const openEdit = (row) => {
+    setEditing(row);
+    setFormOpen(true);
+  };
+
   const handleSubmit = async (payload) => {
     try {
-      if (editing) {
-        await update(editing.id, payload);
-      } else {
-        await create(payload);
-      }
+      if (editing) await update(editing.id, payload);
+      else await create(payload);
       toast.success(t("toast.saved"));
-    } catch (err) {
-      toast.error(err.message || t("toast.error"));
-      throw err;
+    } catch {
+      toast.error(t("toast.error"));
+      throw new Error("save-failed");
     }
   };
 
@@ -175,8 +189,8 @@ export default function StreakPosts() {
     try {
       await remove(deleting.id);
       toast.success(t("toast.deleted"));
-    } catch (err) {
-      toast.error(err.message || t("toast.error"));
+    } catch {
+      toast.error(t("toast.error"));
     }
   };
 
@@ -185,79 +199,78 @@ export default function StreakPosts() {
       await removeMany(selected);
       setSelected([]);
       toast.success(t("toast.deleted"));
-    } catch (err) {
-      toast.error(err.message || t("toast.error"));
-    }
-  };
-
-  const columns = [
-    { label: t("common.date"), value: (r) => formatDateOnly(r.post_date) },
-    { label: t("common.time"), value: (r) => r.post_time?.slice(0, 5) },
-    {
-      label: t("streakPost.filterPeriod"),
-      value: (r) => t(`streakPost.period.${getPeriodOfDay(r.post_time)}`),
-    },
-    { label: t("streakPost.fieldDuration"), value: (r) => r.duration },
-    { label: t("common.description"), value: (r) => r.description || "" },
-  ];
-
-  const handleExport = async (format, rows = filtered, suffix = "") => {
-    try {
-      if (format === "csv")
-        exportToCsv(rows, columns, `streak-posts${suffix}.csv`);
-      else if (format === "excel")
-        exportToExcel(rows, columns, `streak-posts${suffix}.xlsx`);
-      else
-        await exportToPdf(
-          rows,
-          columns,
-          `streak-posts${suffix}.pdf`,
-          t("streakPost.title"),
-        );
-      toast.success(t("csv.exportSuccess"));
     } catch {
       toast.error(t("toast.error"));
     }
   };
 
+  const columns = useMemo(
+    () =>
+      POST_COLUMNS.map((c) => ({
+        ...c,
+        label:
+          c.key === "period" ? t("streakPost.filterPeriod") : t(c.labelKey),
+        value: (r) => c.get(r, t),
+      })),
+    [t],
+  );
+
+  const handleExport = async (format, rows = filtered, suffix = "") => {
+    if (!rows.length) {
+      toast.info(t("csv.exportEmpty"));
+      return;
+    }
+    try {
+      const result = await exportPostsAs(
+        format,
+        rows,
+        columns,
+        t("streakPost.title"),
+        suffix,
+      );
+      if (result?.truncated)
+        toast.info(t("csv.exportTruncated", { count: result.truncated }));
+      else toast.success(t("csv.exportSuccess"));
+    } catch {
+      toast.error(t("csv.exportError"));
+    }
+  };
+
   const handleImport = async (file) => {
     try {
-      const rows = await parseDataFile(file);
-      const valid = rows
-        .filter((r) => r.duration && r.date)
-        .map((r) => ({
-          duration: String(r.duration).trim(),
-          post_date: String(r.date).trim(),
-          post_time: String(r.time || "00:00").slice(0, 5),
-          description: r.description
-            ? String(r.description).trim() || null
-            : null,
-        }));
+      const records = await parseDataFile(file);
+      const { valid, invalid } = mapRecordsToPosts(records);
       if (!valid.length) {
-        toast.error(t("csv.importError"));
+        toast.error(
+          records.length ? t("csv.importError") : t("csv.importEmpty"),
+        );
         return;
       }
-      await bulkCreate(valid);
-      if (valid.length === rows.length) {
-        toast.success(t("csv.importSuccess", { count: valid.length }));
-      } else {
+      const { inserted, updated } = await bulkCreate(valid);
+      if (invalid === 0)
+        toast.success(
+          t("csv.importSuccess", { count: inserted + updated, updated }),
+        );
+      else
         toast.info(
           t("csv.importPartial", {
-            count: valid.length,
-            failed: rows.length - valid.length,
+            count: inserted + updated,
+            failed: invalid,
           }),
         );
-      }
     } catch {
       toast.error(t("csv.importError"));
     }
   };
 
-  const toggleSelectAll = () => {
-    setSelected(
-      selected.length === filtered.length ? [] : filtered.map((f) => f.id),
+  const toggleSelected = (id) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-  };
+  const allSelected =
+    filtered.length > 0 && selected.length === filtered.length;
+  const toggleSelectAll = () =>
+    setSelected(allSelected ? [] : filtered.map((f) => f.id));
 
   const toggleDateSort = () =>
     setSort((s) => (s === "newest" ? "oldest" : "newest"));
@@ -277,17 +290,6 @@ export default function StreakPosts() {
       <PageHeader
         title={t("streakPost.title")}
         subtitle={t("streakPost.subtitle")}
-        // actions={
-        //   <Button
-        //     icon={Plus}
-        //     onClick={() => {
-        //       setEditing(null);
-        //       setFormOpen(true);
-        //     }}
-        //   >
-        //     {t("common.addNew")}
-        //   </Button>
-        // }
       />
 
       <Toolbar
@@ -298,10 +300,10 @@ export default function StreakPosts() {
         sortOptions={sortOptions}
         onImport={handleImport}
         onExport={(format) => handleExport(format)}
+        onAdd={openAdd}
         onResetFilters={resetFilters}
         hasActiveFilters={hasActiveFilters}
-        setEditing={setEditing}
-        setFormOpen={setFormOpen}
+        exportDisabled={loading}
       >
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[var(--color-ink-soft)]">
@@ -310,7 +312,6 @@ export default function StreakPosts() {
           <Select
             value={periodFilter}
             onChange={(e) => setPeriodFilter(e.target.value)}
-            className="w-full"
           >
             <option value="">{t("streakPost.allPeriods")}</option>
             {PERIOD_ORDER.map((p) => (
@@ -329,15 +330,17 @@ export default function StreakPosts() {
               type="date"
               aria-label={t("streakPost.from")}
               value={fromDate}
+              max={toDate || undefined}
               onChange={(e) => setFromDate(e.target.value)}
-              className="w-full min-w-0"
+              className="min-w-0"
             />
             <Input
               type="date"
               aria-label={t("streakPost.to")}
               value={toDate}
+              min={fromDate || undefined}
               onChange={(e) => setToDate(e.target.value)}
-              className="w-full min-w-0"
+              className="min-w-0"
             />
           </div>
         </div>
@@ -348,20 +351,18 @@ export default function StreakPosts() {
           <span className="text-[var(--color-primary)] font-medium">
             {t("common.rowsSelected", { count: selected.length })}
           </span>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
+          <div className="grid grid-cols-2 gap-2">
+            <ExportMenu
               variant="primary"
-              icon={Copy}
-              onClick={() =>
+              label={t("common.exportSelected")}
+              onExport={(format) =>
                 handleExport(
-                  "csv",
-                  items.filter((i) => selected.includes(i.id)),
-                  "-selected",
+                  format,
+                  filtered.filter((i) => selected.includes(i.id)),
+                  "-da-chon",
                 )
               }
-            >
-              {t("common.exportSelected")}
-            </Button>
+            />
             <Button
               variant="danger"
               icon={Trash2}
@@ -371,6 +372,12 @@ export default function StreakPosts() {
             </Button>
           </div>
         </div>
+      )}
+
+      {error && (
+        <p className="mb-4 text-sm text-[var(--color-danger)]">
+          {t("toast.loadError")}
+        </p>
       )}
 
       {loading && (
@@ -400,13 +407,7 @@ export default function StreakPosts() {
           }
           action={
             items.length === 0 && (
-              <Button
-                icon={Plus}
-                onClick={() => {
-                  setEditing(null);
-                  setFormOpen(true);
-                }}
-              >
+              <Button icon={Plus} onClick={openAdd}>
                 {t("common.addNew")}
               </Button>
             )
@@ -416,21 +417,20 @@ export default function StreakPosts() {
 
       {!loading && filtered.length > 0 && (
         <>
-          <div className="hidden md:block rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+          {/* Desktop và tablet: bảng dữ liệu */}
+          <div className="hidden md:block rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-[var(--color-border)] text-left text-xs text-[var(--color-ink-soft)]">
-                    <th className="sticky left-0 z-10 bg-[var(--color-surface)] border-r border-[var(--color-border)] px-4 py-3 w-10">
+                    <th className="sticky left-0 z-10 bg-[var(--color-surface)] px-4 py-3 w-10">
                       <Checkbox
-                        checked={
-                          selected.length === filtered.length &&
-                          filtered.length > 0
-                        }
+                        checked={allSelected}
                         onChange={toggleSelectAll}
+                        aria-label={t("common.all")}
                       />
                     </th>
-                    <th className="px-2 py-3 font-medium border-r border-[var(--color-border)]">
+                    <th className="px-2 py-3 font-medium">
                       <button
                         type="button"
                         onClick={toggleDateSort}
@@ -443,10 +443,10 @@ export default function StreakPosts() {
                         />
                       </button>
                     </th>
-                    <th className="px-2 py-3 font-medium hidden sm:table-cell border-r border-[var(--color-border)]">
+                    <th className="px-2 py-3 font-medium">
                       {t("streakPost.filterPeriod")}
                     </th>
-                    <th className="px-2 py-3 font-medium border-r border-[var(--color-border)]">
+                    <th className="px-2 py-3 font-medium">
                       <button
                         type="button"
                         onClick={toggleDurationSort}
@@ -459,18 +459,18 @@ export default function StreakPosts() {
                         />
                       </button>
                     </th>
-                    <th className="px-2 py-3 font-medium hidden md:table-cell border-r border-[var(--color-border)]">
+                    <th className="px-2 py-3 font-medium">
                       {t("common.description")}
                     </th>
                     <th className="px-2 py-3 font-medium text-right pr-4">
                       {t("common.actions")}
                     </th>
                   </tr>
-                  <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/40">
-                    <th className="sticky left-0 z-10 bg-[var(--color-surface)] border-r border-[var(--color-border)] px-4 py-2" />
-                    <th className="px-2 py-2 border-r border-[var(--color-border)]" />
-                    <th className="px-2 py-2 hidden sm:table-cell border-r border-[var(--color-border)]" />
-                    <th className="px-2 py-2 border-r border-[var(--color-border)]">
+                  <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/50">
+                    <th className="sticky left-0 z-10 bg-[var(--color-surface)] px-4 py-2" />
+                    <th className="px-2 py-2" />
+                    <th className="px-2 py-2" />
+                    <th className="px-2 py-2">
                       <Input
                         icon={SearchIcon}
                         value={colDuration}
@@ -478,10 +478,10 @@ export default function StreakPosts() {
                         placeholder={t("common.columnSearchPlaceholder", {
                           column: t("streakPost.fieldDuration"),
                         })}
-                        className="!py-1.5 !text-xs"
+                        className="!py-1.5 !text-xs font-normal"
                       />
                     </th>
-                    <th className="px-2 py-2 hidden md:table-cell border-r border-[var(--color-border)]">
+                    <th className="px-2 py-2">
                       <Input
                         icon={SearchIcon}
                         value={colDescription}
@@ -489,7 +489,7 @@ export default function StreakPosts() {
                         placeholder={t("common.columnSearchPlaceholder", {
                           column: t("common.description"),
                         })}
-                        className="!py-1.5 !text-xs"
+                        className="!py-1.5 !text-xs font-normal"
                       />
                     </th>
                     <th className="px-2 py-2" />
@@ -501,39 +501,33 @@ export default function StreakPosts() {
                     return (
                       <tr
                         key={row.id}
-                        className="group border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-surface-2)]/60 transition-colors cursor-pointer"
+                        className="group border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-primary-soft)]/40 transition-colors cursor-pointer"
                         onClick={() => setViewing(row)}
                       >
                         <td
-                          className="sticky left-0 z-10 bg-[var(--color-surface)] group-hover:bg-[var(--color-surface-2)] transition-colors border-r border-[var(--color-border)] px-4 py-3"
+                          className="sticky left-0 z-10 bg-[var(--color-surface)] group-hover:bg-[var(--color-surface-2)] transition-colors px-4 py-3"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Checkbox
                             checked={selected.includes(row.id)}
-                            onChange={() =>
-                              setSelected((prev) =>
-                                prev.includes(row.id)
-                                  ? prev.filter((id) => id !== row.id)
-                                  : [...prev, row.id],
-                              )
-                            }
+                            onChange={() => toggleSelected(row.id)}
                           />
                         </td>
-                        <td className="px-2 py-3 whitespace-nowrap text-[var(--color-ink)] border-r border-[var(--color-border)]">
+                        <td className="px-2 py-3 whitespace-nowrap text-[var(--color-ink)]">
                           {formatDateOnly(row.post_date)}{" "}
                           <span className="tabular text-[var(--color-ink-soft)]">
                             · {row.post_time?.slice(0, 5)}
                           </span>
                         </td>
-                        <td className="px-2 py-3 hidden sm:table-cell border-r border-[var(--color-border)]">
+                        <td className="px-2 py-3">
                           <Badge tone={PERIOD_TONE[period]}>
                             {t(`streakPost.period.${period}`)}
                           </Badge>
                         </td>
-                        <td className="px-2 py-3 max-w-[10rem]  text-[var(--color-ink)] font-medium border-r border-[var(--color-border)]">
+                        <td className="px-2 py-3 max-w-[12rem] text-[var(--color-ink)] font-medium break-words">
                           {row.duration}
                         </td>
-                        <td className="px-2 py-3 hidden md:table-cell max-w-xs  text-[var(--color-ink-soft)] border-r border-[var(--color-border)]">
+                        <td className="px-2 py-3 max-w-xs text-[var(--color-ink-soft)] break-words">
                           {row.description}
                         </td>
                         <td
@@ -551,10 +545,7 @@ export default function StreakPosts() {
                               tone="primary"
                               icon={Pencil}
                               label={t("common.edit")}
-                              onClick={() => {
-                                setEditing(row);
-                                setFormOpen(true);
-                              }}
+                              onClick={() => openEdit(row)}
                             />
                             <IconButton
                               tone="danger"
@@ -578,90 +569,64 @@ export default function StreakPosts() {
             />
           </div>
 
-          {/* Mobile: cards instead of a cramped datatable — same data, same actions. */}
+          {/* Mobile: thẻ có thể vuốt. Vuốt phải là sửa, vuốt trái là xóa. */}
           <div className="md:hidden flex flex-col gap-3">
+            <p className="text-xs text-left text-[var(--color-ink-soft)]">
+              {t("common.swipeHint")}
+            </p>
             {paginated.map((row) => {
               const period = getPeriodOfDay(row.post_time);
               const isSelected = selected.includes(row.id);
               return (
-                <div
+                <SwipeRow
                   key={row.id}
-                  onClick={() => setViewing(row)}
-                  className={`stagger-item rounded-[var(--radius-card)] border bg-[var(--color-surface)] shadow-[var(--shadow-card)] p-4 flex flex-col gap-3 cursor-pointer transition-colors ${
-                    isSelected
-                      ? "border-[var(--color-primary)]"
-                      : "border-[var(--color-border)]"
-                  }`}
+                  onSwipeRight={() => openEdit(row)}
+                  onSwipeLeft={() => setDeleting(row)}
+                  className="stagger-item shadow-[var(--shadow-card)]"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="pt-0.5"
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={() =>
-                            setSelected((prev) =>
-                              prev.includes(row.id)
-                                ? prev.filter((id) => id !== row.id)
-                                : [...prev, row.id],
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-[var(--color-ink)]">
-                          {row.duration}
-                        </p>
-                        <p className="text-[var(--color-ink-soft)] tabular mt-0.5 text-sm">
-                          {formatDateOnly(row.post_date)} ·{" "}
-                          {row.post_time?.slice(0, 5)}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge tone={PERIOD_TONE[period]} className="shrink-0">
-                      {t(`streakPost.period.${period}`)}
-                    </Badge>
-                  </div>
-                  {row.description && (
-                    <p className="text-[var(--color-ink-soft)]">
-                      {row.description}
-                    </p>
-                  )}
                   <div
-                    className="flex items-center justify-end gap-1.5 pt-2 border-t border-[var(--color-border)]"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={() => setViewing(row)}
+                    className={`rounded-[var(--radius-card)] border bg-[var(--color-surface)] p-4 flex flex-col gap-3 cursor-pointer ${
+                      isSelected
+                        ? "border-[var(--color-primary)]"
+                        : "border-[var(--color-border)]"
+                    }`}
                   >
-                    <IconButton
-                      size={18}
-                      tone="info"
-                      icon={Eye}
-                      label={t("common.view")}
-                      onClick={() => setViewing(row)}
-                    />
-                    <IconButton
-                      size={18}
-                      tone="primary"
-                      icon={Pencil}
-                      label={t("common.edit")}
-                      onClick={() => {
-                        setEditing(row);
-                        setFormOpen(true);
-                      }}
-                    />
-                    <IconButton
-                      size={18}
-                      tone="danger"
-                      icon={Trash2}
-                      label={t("common.delete")}
-                      onClick={() => setDeleting(row)}
-                    />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="pt-0.5"
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={() => toggleSelected(row.id)}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[var(--color-ink)] break-words">
+                            {row.duration}
+                          </p>
+                          <p className="text-[var(--color-ink-soft)] tabular mt-0.5 text-sm">
+                            {formatDateOnly(row.post_date)} ·{" "}
+                            {row.post_time?.slice(0, 5)}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge tone={PERIOD_TONE[period]} className="shrink-0">
+                        {t(`streakPost.period.${period}`)}
+                      </Badge>
+                    </div>
+                    {row.description && (
+                      <p className="text-sm text-[var(--color-ink-soft)] line-clamp-3 break-words">
+                        {row.description}
+                      </p>
+                    )}
                   </div>
-                </div>
+                </SwipeRow>
               );
             })}
-            <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
               <Pagination
                 page={page}
                 pageSize={PAGE_SIZE}
@@ -684,10 +649,7 @@ export default function StreakPosts() {
         open={!!viewing}
         onClose={() => setViewing(null)}
         post={viewing}
-        onEdit={(row) => {
-          setEditing(row);
-          setFormOpen(true);
-        }}
+        onEdit={openEdit}
         onDelete={(row) => setDeleting(row)}
       />
 
@@ -706,7 +668,8 @@ export default function StreakPosts() {
         open={bulkDeleteOpen}
         onClose={() => setBulkDeleteOpen(false)}
         onConfirm={handleBulkDelete}
-        body={t("common.deleteConfirmBody")}
+        title={t("common.deleteSelected")}
+        body={`${t("common.deleteConfirmBody")} (${selected.length})`}
       />
     </div>
   );

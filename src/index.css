@@ -3,125 +3,106 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
-   Design tokens — Material Design 3 baseline tonal palette.
-   Neutral surfaces (surface / surface container / outline /
-   on-surface) and the default brand accent follow M3's baseline
-   "Purple" seed color (https://m3.material.io/styles/color/system/overview)
-   exactly, so the whole app reads as a standard M3 light/dark theme
-   rather than an arbitrary custom palette. Semantic colors (success/
-   warning/danger/info) are separate roles so status indicators never
-   get confused with the brand accent.
+   Design tokens - phong cách Modern Minimalist.
+   Màu chủ đạo: Violet của Tailwind CSS.
+   Giao diện sáng dùng nền Zinc rất nhạt, giao diện tối dùng
+   thang màu Zinc của Tailwind. Màu trạng thái (thành công, cảnh
+   báo, lỗi, thông tin) tách riêng để không nhầm với màu nhấn.
    ============================================================ */
 :root {
-  --color-bg: #FFFBFE;
-  --color-surface: #FFFFFF;
-  --color-surface-2: #F3EDF7;
-  --color-sidebar: #F7F2FA;
-  --color-sidebar-hover: #ECE6F0;
-  --color-border: #CAC4D0;
-  --color-divider: #79747E;
-  --color-ink: #1C1B1F;
-  --color-ink-soft: #49454F;
+  --color-bg: #fafafa; /* zinc-50 */
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f4f5; /* zinc-100 */
+  --color-sidebar: #f5f3ff; /* violet-50 */
+  --color-sidebar-hover: #ede9fe; /* violet-100 */
+  --color-border: #e4e4e7; /* zinc-200 */
+  --color-divider: #a1a1aa; /* zinc-400 */
+  --color-ink: #18181b; /* zinc-900 */
+  --color-ink-soft: #52525b; /* zinc-600 */
 
-  --color-primary: #6750A4;
-  --color-primary-ink: #FFFFFF;
-  --color-primary-soft: #EADDFF;
-  --color-teal: #386A20;
-  --color-teal-soft: #C5EFA5;
+  --color-primary: #7c3aed; /* violet-600 */
+  --color-primary-ink: #ffffff;
+  --color-primary-soft: #ede9fe; /* violet-100 */
+  --color-primary-strong: #6d28d9; /* violet-700 */
 
-  --color-success: #386A20;
-  --color-success-soft: #C5EFA5;
-  --color-warning: #7A5900;
-  --color-warning-soft: #FFDEA6;
-  --color-danger: #B3261E;
-  --color-danger-soft: #F9DEDC;
-  --color-info: #0061A4;
-  --color-info-soft: #D1E4FF;
+  --color-success: #047857;
+  --color-success-soft: #d1fae5;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-danger-solid: #dc2626;
+  --color-info: #0369a1;
+  --color-info-soft: #e0f2fe;
 
   --radius-control: 12px;
   --radius-card: 16px;
-  --radius-modal: 28px;
+  --radius-modal: 24px;
 
-  --shadow-card: 0 1px 2px rgba(28, 27, 31, 0.05), 0 8px 24px rgba(28, 27, 31, 0.08);
-  --shadow-modal: 0 8px 16px rgba(28, 27, 31, 0.08), 0 24px 48px rgba(28, 27, 31, 0.16);
+  --shadow-card: 0 1px 2px rgba(24, 24, 27, 0.04), 0 4px 16px rgba(24, 24, 27, 0.05);
+  --shadow-modal: 0 8px 16px rgba(24, 24, 27, 0.08), 0 24px 48px rgba(24, 24, 27, 0.14);
+
+  color-scheme: light;
 }
 
-/* Material 3 dark scheme — baseline neutral tones (surface / surface
-   containers / on-surface / outline) straight from the M3 dark palette. */
+/* Giao diện tối: thang màu Zinc. */
 .dark {
-  --color-bg: #141218;
-  --color-surface: #211F26;
-  --color-surface-2: #2B2930;
-  --color-sidebar: #0F0D13;
-  --color-sidebar-hover: #2B2930;
-  --color-border: #49454F;
-  --color-divider: #938F99;
-  --color-ink: #E6E0E9;
-  --color-ink-soft: #CAC4D0;
+  --color-bg: #09090b; /* zinc-950 */
+  --color-surface: #18181b; /* zinc-900 */
+  --color-surface-2: #27272a; /* zinc-800 */
+  --color-sidebar: #18181b;
+  --color-sidebar-hover: #27272a;
+  --color-border: #3f3f46; /* zinc-700 */
+  --color-divider: #71717a; /* zinc-500 */
+  --color-ink: #fafafa; /* zinc-50 */
+  --color-ink-soft: #a1a1aa; /* zinc-400 */
 
-  --color-primary: #D0BCFF;
-  --color-primary-ink: #381E72;
-  --color-primary-soft: #4F378B;
-  --color-teal: #A2D585;
-  --color-teal-soft: #1F3701;
+  --color-primary: #a78bfa; /* violet-400 */
+  --color-primary-ink: #1e0a4a;
+  --color-primary-soft: #2e1065; /* violet-950 */
+  --color-primary-strong: #c4b5fd; /* violet-300 */
 
-  --color-success: #A2D585;
-  --color-success-soft: #1F3701;
-  --color-warning: #FDBB2E;
-  --color-warning-soft: #5C4200;
-  --color-danger: #F2B8B5;
-  --color-danger-soft: #8C1D18;
-  --color-info: #9ECAFF;
-  --color-info-soft: #00497D;
+  --color-success: #34d399;
+  --color-success-soft: #064e3b;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #451a03;
+  --color-danger: #f87171;
+  --color-danger-soft: #450a0a;
+  --color-danger-solid: #dc2626;
+  --color-info: #38bdf8;
+  --color-info-soft: #082f49;
 
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
-  --shadow-modal: 0 8px 16px rgba(0, 0, 0, 0.45), 0 32px 64px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px -10px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 8px 16px rgba(0, 0, 0, 0.5), 0 32px 64px rgba(0, 0, 0, 0.65);
+
+  color-scheme: dark;
 }
-
-/* ============================================================
-   Accent themes — chosen in Settings. "Material" is the M3 baseline
-   purple and is the default; the rest are optional M3-style tonal
-   accents (each still only overrides the brand "primary" role, never
-   the neutral scale, so switching never disturbs layout/readability).
-   ============================================================ */
-.theme-material { --color-primary: #6750A4; --color-primary-soft: #EADDFF; --color-primary-ink: #FFFFFF; }
-.dark.theme-material { --color-primary: #D0BCFF; --color-primary-soft: #4F378B; --color-primary-ink: #381E72; }
-
-.theme-amber { --color-primary: #825500; --color-primary-soft: #FFDEA6; --color-primary-ink: #FFFFFF; }
-.dark.theme-amber { --color-primary: #FFB945; --color-primary-soft: #634000; --color-primary-ink: #442B00; }
-
-.theme-ocean { --color-primary: #0061A4; --color-primary-soft: #D1E4FF; --color-primary-ink: #FFFFFF; }
-.dark.theme-ocean { --color-primary: #9ECAFF; --color-primary-soft: #00497D; --color-primary-ink: #003258; }
-
-.theme-sky { --color-primary: #38608F; --color-primary-soft: #D3E4FF; --color-primary-ink: #FFFFFF; }
-.dark.theme-sky { --color-primary: #A2C9FF; --color-primary-soft: #1D4876; --color-primary-ink: #0A3055; }
-
-.theme-forest { --color-primary: #386A20; --color-primary-soft: #B7F397; --color-primary-ink: #FFFFFF; }
-.dark.theme-forest { --color-primary: #9CD67D; --color-primary-soft: #205107; --color-primary-ink: #0F3900; }
-
-.theme-mint { --color-primary: #006A60; --color-primary-soft: #74F8E5; --color-primary-ink: #FFFFFF; }
-.dark.theme-mint { --color-primary: #53DBC9; --color-primary-soft: #005048; --color-primary-ink: #00201C; }
-
-.theme-rose { --color-primary: #8E4956; --color-primary-soft: #FFD9DD; --color-primary-ink: #FFFFFF; }
-.dark.theme-rose { --color-primary: #FFB2BB; --color-primary-soft: #6F323D; --color-primary-ink: #561D29; }
-
-.theme-red { --color-primary: #904A43; --color-primary-soft: #FFDAD4; --color-primary-ink: #FFFFFF; }
-.dark.theme-red { --color-primary: #FFB4A8; --color-primary-soft: #73342C; --color-primary-ink: #561F18; }
 
 * {
   border-color: var(--color-border);
 }
 
-html, body, #root {
-  height: 100%;
+html,
+body,
+#root {
+  min-height: 100%;
 }
 
+/* Chỉ dùng duy nhất một font: system-ui cho toàn bộ web app. */
 body {
   font-family: system-ui, sans-serif;
   background-color: var(--color-bg);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
-  transition: background-color .25s ease, color .25s ease, font-size .15s ease;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 .tabular {
@@ -129,8 +110,13 @@ body {
   letter-spacing: -0.02em;
 }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
   background-color: var(--color-border);
   border-radius: 999px;
@@ -138,13 +124,14 @@ body {
   background-clip: content-box;
 }
 
+/* ---------- Animation ---------- */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 @keyframes modal-in {
-  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -153,7 +140,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .page-enter {
-  animation: fade-in-up .26s cubic-bezier(.2,.8,.2,1);
+  animation: fade-in-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes shimmer {
@@ -167,15 +154,14 @@ body {
 }
 
 .card-hover {
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-modal);
 }
 
-/* Solid surface — used by Modal / Toast / CommandPalette / BottomNav.
-   Intentionally opaque (no blur/frosted-glass effect) per design spec. */
+/* Bề mặt đặc (không mờ kính) dùng cho Modal, Toast, CommandPalette, BottomNav. */
 .glass-surface {
   background-color: var(--color-surface);
 }
@@ -185,7 +171,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .stagger-item {
-  animation: stagger-in .38s cubic-bezier(.2,.8,.2,1) both;
+  animation: stagger-in 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: var(--stagger-delay, 0ms);
 }
 
@@ -194,25 +180,22 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes chain-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .55; }
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.96); }
 }
-.chain-live { animation: chain-pulse 2.4s ease-in-out infinite; }
+.pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
 
-/* Material-style ripple — expands from the pointer, fades out. Any
-   container using it needs `position: relative; overflow: hidden`.
-   Two separate keyframes (scale grows the whole time, opacity holds
-   briefly then fades) keep it visible for a beat instead of vanishing
-   instantly under the fast "grow" easing. Fixed rgba colors (rather
-   than currentColor) keep contrast predictable across every surface. */
+/* Hiệu ứng ripple khi bấm. Container cần `position: relative; overflow: hidden`. */
 @keyframes ripple-scale {
   from { transform: scale(0); }
   to { transform: scale(1); }
 }
 @keyframes ripple-fade {
   0% { opacity: 1; }
-  55% { opacity: .8; }
+  55% { opacity: 0.8; }
   100% { opacity: 0; }
 }
 .ripple {
@@ -220,36 +203,44 @@ body {
   border-radius: 9999px;
   pointer-events: none;
   transform: scale(0);
-  animation: ripple-scale .55s cubic-bezier(.2,.8,.2,1) forwards, ripple-fade .55s ease-out forwards;
+  animation: ripple-scale 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, ripple-fade 0.55s ease-out forwards;
 }
 .ripple-light { background: rgba(255, 255, 255, 0.45); }
-.ripple-dark { background: rgba(0, 0, 0, 0.14); }
+.ripple-dark { background: rgba(124, 58, 237, 0.16); }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
 }
 
-/* Accordion (filter panel) — animates height via grid-template-rows
-   (0fr <-> 1fr) so content can be `overflow:hidden` without a hard-coded
-   max-height, and opens/closes smoothly instead of snapping. */
+/* Accordion: animate chiều cao bằng grid-template-rows (0fr sang 1fr)
+   nên không cần max-height cố định và mở/đóng mượt. */
 .accordion {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows .22s cubic-bezier(.2,.8,.2,1);
+  transition: grid-template-rows 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .accordion.accordion-open {
   grid-template-rows: 1fr;
 }
 .accordion > div {
   overflow: hidden;
+  min-height: 0;
 }
 
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Vùng vuốt trên mobile: cho phép cuộn dọc, ngang do component tự xử lý. */
+.swipe-surface {
+  touch-action: pan-y;
+  will-change: transform;
 }

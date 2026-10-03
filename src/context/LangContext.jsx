@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useCallback } from 'react'
+import { createContext, useCallback, useContext, useMemo } from 'react'
 import vi from '../i18n/vi'
 
 const LangContext = createContext(null)
@@ -8,28 +8,26 @@ function getByPath(obj, path) {
 }
 
 /**
- * The app only ever supports Vietnamese — there is no language switcher.
- * `lang` is still exposed (as the fixed string 'vi') because a couple of
- * date-formatting helpers (weekday/month short names) take it as a param.
+ * Ứng dụng chỉ hỗ trợ tiếng Việt nên không có bộ chuyển ngôn ngữ.
+ * Hàm `t('khóa.con', { biến: giá trị })` tra chuỗi và thay thế {biến}.
  */
 export function LangProvider({ children }) {
   const t = useCallback((path, vars) => {
     let str = getByPath(vi, path) ?? path
     if (vars && typeof str === 'string') {
       Object.entries(vars).forEach(([k, v]) => {
-        str = str.replace(new RegExp(`{${k}}`, 'g'), v)
+        str = str.replaceAll(`{${k}}`, v)
       })
     }
     return str
   }, [])
 
-  const value = useMemo(() => ({ lang: 'vi', t }), [t])
-
+  const value = useMemo(() => ({ t }), [t])
   return <LangContext.Provider value={value}>{children}</LangContext.Provider>
 }
 
 export function useLang() {
   const ctx = useContext(LangContext)
-  if (!ctx) throw new Error('useLang must be used within LangProvider')
+  if (!ctx) throw new Error('useLang phải được dùng bên trong LangProvider')
   return ctx
 }

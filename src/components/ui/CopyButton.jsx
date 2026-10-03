@@ -30,7 +30,7 @@ export default function CopyButton({ text, label, className = '' }) {
       title={label || t('common.copy')}
       className={`inline-flex items-center justify-center rounded-lg p-1.5 transition-colors duration-150 ${
         copied
-          ? 'text-[var(--color-teal)]'
+          ? 'text-[var(--color-success)]'
           : 'text-[var(--color-ink-soft)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)]'
       } ${className}`}
     >

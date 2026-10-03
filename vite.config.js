@@ -7,29 +7,34 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/*.png'],
-      manifest: {
-        name: 'Streak Logger',
-        short_name: 'Streak Logger',
-        description: 'Dashboard cá nhân theo dõi mốc thời gian và nhật ký streak',
-        lang: 'vi',
-        theme_color: '#6750A4',
-        background_color: '#FFFBFE',
-        display: 'standalone',
-        start_url: '/',
-        scope: '/',
-        icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
+      // Manifest được viết tay trong public/ (bản sáng và bản tối) để màn hình
+      // chờ của PWA khớp với giao diện, nên không để plugin tự sinh manifest.
+      manifest: false,
+      includeAssets: ['favicon.svg', 'favicon.ico', 'icons/*.png'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,ttf}'],
+        // Ảnh splash của iOS do hệ điều hành tự đọc, không cần precache.
+        globIgnores: ['splash/**'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        // Các đường dẫn của Firebase Auth (đăng nhập redirect) không được cache bởi service worker.
+        navigateFallbackDenylist: [/^\/__\//, /^\/api\//],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // Tách các thư viện lớn thành chunk riêng để cache tốt hơn và tải song song.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase'
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) return 'charts'
+          if (id.includes('react-router') || id.includes('react-dom') || id.includes('/react/')) return 'react'
+          return undefined
+        },
+      },
+    },
+  },
 })

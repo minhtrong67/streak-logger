@@ -13,7 +13,7 @@ const tones = {
 };
 
 /**
- * `tone` renders an always-visible, filled circular pill — used for
+ * `tone` renders an always-visible, filled circular pill: used for
  * datatable row actions per the design spec (never hidden behind hover,
  * always identifiable at a glance). Omit `tone` for the plain ghost
  * icon button used in cards/toolbars.

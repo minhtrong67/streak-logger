@@ -29,8 +29,7 @@ export default function StreakPostView({
       footer={
         <>
           <Button
-            size="lg"
-            variant="danger"
+            variant="dangerSoft"
             icon={Trash2}
             onClick={() => {
               onDelete(post);
@@ -40,7 +39,6 @@ export default function StreakPostView({
             {t("common.delete")}
           </Button>
           <Button
-            size="lg"
             icon={Pencil}
             onClick={() => {
               onEdit(post);

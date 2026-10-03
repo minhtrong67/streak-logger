@@ -1,59 +1,53 @@
-import { useCallback, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { deleteDoc, doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import { useAuth } from '../context/AuthContext'
 
 /**
- * Manages the single time streak record. The app is designed to track
- * exactly one milestone at a time, so this hook exposes a single
- * `streak` object (or null) instead of a list.
+ * Quản lý mốc thời gian duy nhất của người dùng.
+ * Ứng dụng chỉ theo dõi một mốc nên dữ liệu lưu ở một document cố định:
+ * users/{uid}/timeStreaks/current (đồng bộ realtime).
  */
 export function useTimeStreak() {
+  const { user } = useAuth()
+  const uid = user?.uid
   const [streak, setStreak] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const refresh = useCallback(async () => {
+  const ref = useMemo(() => (uid ? doc(db, 'users', uid, 'timeStreaks', 'current') : null), [uid])
+
+  useEffect(() => {
+    if (!ref) return undefined
     setLoading(true)
-    const { data, error: err } = await supabase
-      .from('time_streaks')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-    if (err) setError(err.message)
-    else setStreak(data)
-    setLoading(false)
-  }, [])
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        setStreak(snap.exists() ? { id: snap.id, ...snap.data() } : null)
+        setError(null)
+        setLoading(false)
+      },
+      (err) => {
+        setError(err.message)
+        setLoading(false)
+      },
+    )
+    return unsubscribe
+  }, [ref])
 
-  useEffect(() => { refresh() }, [refresh])
-
-  const save = useCallback(async (payload) => {
-    if (streak) {
-      const { data, error: err } = await supabase
-        .from('time_streaks')
-        .update(payload)
-        .eq('id', streak.id)
-        .select()
-        .single()
-      if (err) throw err
-      setStreak(data)
-      return data
-    }
-    const { data, error: err } = await supabase
-      .from('time_streaks')
-      .insert([payload])
-      .select()
-      .single()
-    if (err) throw err
-    setStreak(data)
-    return data
-  }, [streak])
+  /** Tạo mới hoặc cập nhật mốc thời gian (merge để giữ created_at cũ). */
+  const save = useCallback(
+    async (payload) => {
+      const data = { ...payload, updated_at: serverTimestamp() }
+      if (!streak) data.created_at = serverTimestamp()
+      await setDoc(ref, data, { merge: true })
+    },
+    [ref, streak],
+  )
 
   const remove = useCallback(async () => {
-    if (!streak) return
-    const { error: err } = await supabase.from('time_streaks').delete().eq('id', streak.id)
-    if (err) throw err
-    setStreak(null)
-  }, [streak])
+    await deleteDoc(ref)
+  }, [ref])
 
-  return { streak, loading, error, refresh, save, remove }
+  return { streak, loading, error, save, remove }
 }

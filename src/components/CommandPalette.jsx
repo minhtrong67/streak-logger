@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Clock, NotebookText, BarChart3, Settings as SettingsIcon, CornerDownLeft } from 'lucide-react'
+import { Search, CornerDownLeft } from 'lucide-react'
 import { useLang } from '../context/LangContext'
+import { NAV_ITEMS } from '../utils/nav'
 
 export default function CommandPalette() {
   const { t } = useLang()
@@ -11,15 +12,7 @@ export default function CommandPalette() {
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef(null)
 
-  const pages = useMemo(
-    () => [
-      { to: '/time-streaks', label: t('nav.timeStreaks'), icon: Clock },
-      { to: '/streak-posts', label: t('nav.streakPosts'), icon: NotebookText },
-      { to: '/statistics', label: t('nav.statistics'), icon: BarChart3 },
-      { to: '/settings', label: t('nav.settings'), icon: SettingsIcon },
-    ],
-    [t],
-  )
+  const pages = useMemo(() => NAV_ITEMS.map(({ to, key, icon }) => ({ to, label: t(`nav.${key}`), icon })), [t])
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()

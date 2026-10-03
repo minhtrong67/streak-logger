@@ -1,25 +1,25 @@
-// Maps each time-of-day bucket to a consistent Badge tone and chart hex,
-// so period colors never drift out of sync between the table, the detail
-// modal, and the statistics charts. Chosen to evoke the actual time of day:
-// morning = warm sunrise amber, noon = bright sky, afternoon = teal (brand
-// secondary), evening = dusk violet.
+/**
+ * Màu và nhãn cho từng buổi trong ngày, dùng chung cho bảng, modal và biểu đồ
+ * để màu luôn nhất quán. Chọn màu gợi đúng thời điểm: sáng là hổ phách của
+ * bình minh, trưa là xanh da trời, chiều là xanh ngọc, tối là violet hoàng hôn.
+ */
 export const PERIOD_TONE = {
   morning: 'warning',
   noon: 'info',
-  afternoon: 'teal',
-  evening: 'purple',
+  afternoon: 'success',
+  evening: 'violet',
 }
 
 export const PERIOD_HEX = {
-  morning: '#D97706',
-  noon: '#0284C7',
-  afternoon: '#1B6E6A',
+  morning: '#F59E0B',
+  noon: '#0EA5E9',
+  afternoon: '#10B981',
   evening: '#7C3AED',
 }
 
-export const PERIOD_HEX_DARK = {
-  morning: '#F59E0B',
-  noon: '#38BDF8',
-  afternoon: '#4FBDB6',
-  evening: '#B794F6',
+export const PERIOD_LABEL = {
+  morning: 'Sáng',
+  noon: 'Trưa',
+  afternoon: 'Chiều',
+  evening: 'Tối',
 }

@@ -37,7 +37,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm">
+      <div className="fixed top-[max(0.75rem,env(safe-area-inset-top))] lg:top-auto lg:bottom-4 right-4 z-[100] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm">
         {toasts.map((t) => {
           const Icon = icons[t.type]
           return (
@@ -48,7 +48,7 @@ export function ToastProvider({ children }) {
             >
               <Icon size={18} className="mt-0.5 shrink-0 text-[var(--color-ink-soft)]" />
               <span className="flex-1 leading-snug">{t.message}</span>
-              <button onClick={() => remove(t.id)} className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]" aria-label="Close">
+              <button onClick={() => remove(t.id)} className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]" aria-label="Đóng">
                 <X size={16} />
               </button>
             </div>

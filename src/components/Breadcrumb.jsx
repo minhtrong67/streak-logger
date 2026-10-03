@@ -17,10 +17,10 @@ export default function Breadcrumb() {
   return (
     <div className="flex items-center gap-1.5 text-sm min-w-0">
       <LayoutGrid size={15} className="text-[var(--color-ink-soft)] shrink-0" />
-      <span className="text-[var(--color-ink-soft)] hidden sm:inline">{t('app.name')}</span>
+      <span className="text-[var(--color-ink-soft)]">{t('app.name')}</span>
       {key && (
         <>
-          <ChevronRight size={14} className="text-[var(--color-ink-soft)] shrink-0 hidden sm:inline" />
+          <ChevronRight size={14} className="text-[var(--color-ink-soft)] shrink-0" />
           <span className="font-medium text-[var(--color-ink)] truncate">{t(key)}</span>
         </>
       )}

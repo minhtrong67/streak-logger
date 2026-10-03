@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// Mỗi người dùng chỉ đọc và ghi được dữ liệu của chính mình (users/{uid}/...).
+// Có kiểm tra cấu trúc và kiểu dữ liệu ở phía server để dữ liệu sai không thể được ghi vào.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validPost(d) {
+      return d.duration is string && d.duration.size() > 0 && d.duration.size() <= 100
+        && d.post_date is string && d.post_date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && d.post_time is string && d.post_time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+        && (d.description == null || (d.description is string && d.description.size() <= 2000));
+    }
+
+    function validStreak(d) {
+      return d.title is string && d.title.size() > 0 && d.title.size() <= 100
+        && d.start_at is string && d.start_at.size() > 0
+        && (d.note == null || (d.note is string && d.note.size() <= 500));
+    }
+
+    match /users/{uid}/streakPosts/{postId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validPost(request.resource.data);
+    }
+
+    match /users/{uid}/timeStreaks/{streakId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && streakId == 'current' && validStreak(request.resource.data);
+    }
+  }
+}

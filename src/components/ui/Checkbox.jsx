@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 
 /**
  * A fully custom checkbox rather than a bare `<input type="checkbox">` with
- * `accent-color` — native checkbox rendering (rounded corners, checkmark
+ * `accent-color`: native checkbox rendering (rounded corners, checkmark
  * contrast) is inconsistent across browsers and doesn't reliably adapt to
  * dark mode. This version is explicit in both states/themes.
  */

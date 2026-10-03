@@ -14,7 +14,7 @@ import { SkeletonCard } from "../components/ui/Skeleton";
 export default function TimeStreaks() {
   const { t } = useLang();
   const toast = useToast();
-  const { streak, loading, save, remove } = useTimeStreak();
+  const { streak, loading, error, save, remove } = useTimeStreak();
 
   const [formOpen, setFormOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function TimeStreaks() {
       await save(payload);
       toast.success(t("toast.saved"));
     } catch (err) {
-      toast.error(err.message || t("toast.error"));
+      toast.error(t("toast.error"));
       throw err;
     }
   };
@@ -33,8 +33,8 @@ export default function TimeStreaks() {
     try {
       await remove();
       toast.success(t("toast.deleted"));
-    } catch (err) {
-      toast.error(err.message || t("toast.error"));
+    } catch {
+      toast.error(t("toast.error"));
     }
   };
 
@@ -46,7 +46,6 @@ export default function TimeStreaks() {
         actions={
           streak && (
             <Button
-              size="lg"
               icon={Pencil}
               variant="primary"
               onClick={() => setFormOpen(true)}
@@ -58,6 +57,10 @@ export default function TimeStreaks() {
       />
 
       {loading && <SkeletonCard className="max-w-xl" />}
+
+      {!loading && error && (
+        <p className="mb-4 text-sm text-[var(--color-danger)]">{t("toast.loadError")}</p>
+      )}
 
       {!loading && !streak && (
         <EmptyState
